@@ -1,14 +1,14 @@
 #!/bin/bash
 
 DIR=$(dirname ${BASH_SOURCE:-$0})
-SERVICES="$DIR/../logs/services/*/logs"
+SERVICES="$DIR/../logs/process/*"
 
 if [ -n "$1" ]
 then
     SERVICES=""
     for var in "$@"
     do 
-        SERVICES+="services/$var/logs "
+        SERVICES+="$DIR/../logs/process/$var "
     done
 fi
 
