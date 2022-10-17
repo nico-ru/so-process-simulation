@@ -167,6 +167,7 @@ cython_debug/
 # data and logs
 logs/process/*
 logs/server/*
+logs/compound/*
 
 # hydra runs
 /multirun
