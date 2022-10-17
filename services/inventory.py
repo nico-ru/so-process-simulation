@@ -1,49 +1,12 @@
 import random
+import dotenv
 from typing import Dict
-from flask.app import Flask
-from flask.wrappers import Request
-from flask import jsonify, request
 
-from utils.util import get_url, log_request, log_runner, send_service_call, run_service
-from lib.process import Activity, Process, Decision, ProcessRunner
+from utils.util import get_url, send_service_call
+from utils.service import setup_service, run_service
+from lib.process import Activity, Process, Decision
 
-inventory = Flask("inventory")
-
-
-def run(request: Request):
-    process = Process(
-        [
-            Activity(
-                "check inverntory",
-                attributes=dict(endpoint=request.path),
-                execution=check_inventory,
-            ),
-            Decision(
-                [
-                    Activity(),
-                    Activity(
-                        "request reorder",
-                        attributes=dict(endpoint=request.path),
-                        execution=request_reorder,
-                    ),
-                ],
-                condition=lambda data: 1
-                if len(data["unavailable_products"]) > 0
-                else 0,
-            ),
-            Activity(
-                "send confirmation",
-                attributes=dict(endpoint=request.path),
-                execution=send_confirmation,
-            ),
-        ],
-        header=["case_id", "activity", "timestamp", "endpoint"],
-    )
-
-    runner = ProcessRunner(process)
-    runner.data["request"] = request
-    runner.execute(case_id=request.headers.get("CORRELATION_ID", type=int))
-    log_runner(runner, inventory.name)
+dotenv.load_dotenv()
 
 
 def check_inventory(data: Dict):
@@ -64,12 +27,30 @@ def send_confirmation(data: Dict):
     send_service_call(to, data)
 
 
-@inventory.route("/inventory", methods=["POST"])
-def create_invoice():
-    log_request(request, inventory.name)
-    run(request)
-    return jsonify(success=True)
+PROCESS = Process(
+    [
+        Activity(
+            "check inverntory",
+            execution=check_inventory,
+        ),
+        Decision(
+            [
+                Activity(),
+                Activity(
+                    "request reorder",
+                    execution=request_reorder,
+                ),
+            ],
+            condition=lambda data: 1 if len(data["unavailable_products"]) > 0 else 0,
+        ),
+        Activity(
+            "send confirmation",
+            execution=send_confirmation,
+        ),
+    ]
+)
 
 
 if __name__ == "__main__":
+    inventory = setup_service("inventory", PROCESS)
     run_service(inventory)

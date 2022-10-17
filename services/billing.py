@@ -1,31 +1,12 @@
+import dotenv
 from typing import Dict
-from flask.app import Flask
-from flask.wrappers import Request
-from flask import jsonify, request
 
-from utils.util import get_url, log_request, send_service_call, log_runner, run_service
-from lib.process import Activity, Process, ProcessRunner
-
-billing = Flask("billing")
+from utils.util import get_url, send_service_call
+from utils.service import setup_service, run_service
+from lib.process import Activity, Process
 
 
-def run(request: Request):
-    process = Process(
-        [
-            Activity("prepare invoice", attributes=dict(endpoint=request.path)),
-            Activity(
-                "send invoice",
-                attributes=dict(endpoint=request.path),
-                execution=send_invoice,
-            ),
-        ],
-        header=["case_id", "activity", "timestamp", "endpoint"],
-    )
-
-    runner = ProcessRunner(process)
-    runner.data["request"] = request
-    runner.execute(case_id=request.headers.get("CORRELATION_ID", type=int))
-    log_runner(runner, billing.name)
+dotenv.load_dotenv()
 
 
 def send_invoice(data: Dict):
@@ -33,12 +14,17 @@ def send_invoice(data: Dict):
     send_service_call(to, data)
 
 
-@billing.route("/invoice", methods=["POST"])
-def create_invoice():
-    log_request(request, billing.name)
-    run(request)
-    return jsonify(success=True)
+PROCESS = Process(
+    [
+        Activity("prepare invoice"),
+        Activity(
+            "send invoice",
+            execution=send_invoice,
+        ),
+    ]
+)
 
 
 if __name__ == "__main__":
+    billing = setup_service("billing", PROCESS)
     run_service(billing)
