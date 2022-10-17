@@ -3,12 +3,11 @@
 from setuptools import find_packages, setup
 
 setup(
-    name="src",
+    name="lib",
     version="0.0.1",
-    description="Process simulation of microservice web shop",
-    author="",
-    author_email="",
-    url="https://github.com/user/project",  # REPLACE WITH YOUR OWN GITHUB PROJECT LINK
-    install_requires=["flask", "dotenv"],
+    description="helper library to instantiate and run processes.",
+    author="Nico Alexander Rudolf",
+    author_email="a11940241@unet.univie.ac.at",
+    install_requires=[],
     packages=find_packages(),
 )
