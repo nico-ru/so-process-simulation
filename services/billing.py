@@ -1,18 +1,34 @@
-import dotenv
-from typing import Dict
+from typing import Dict, Union
+from fastapi import FastAPI, Header
+from starlette.background import BackgroundTasks
+from services.utils.models import Order
 
-from utils.util import get_url, send_service_call
-from utils.service import setup_service, run_service
-from lib.process import Activity, Process
+from services.utils.util import get_url, send_service_call
+from services.utils import config
+from services.utils.service import run_process
+from lib.process import Process, Activity
+
+"""
+Setting up the server for the order service
+"""
+name = "billing"
+server = FastAPI(title=name)
+settings = config.Settings()  # type: ignore
 
 
-dotenv.load_dotenv()
+"""
+Specify callback functions for process execution
+"""
 
 
 def send_invoice(data: Dict):
     to = get_url("message", "common")
-    send_service_call(to, data)
+    send_service_call(to, data, data["correlation_id"])
 
+
+"""
+Define the process model running in the order service
+"""
 
 PROCESS = Process(
     [
@@ -24,7 +40,16 @@ PROCESS = Process(
     ]
 )
 
+"""
+Register Routes
+"""
 
-if __name__ == "__main__":
-    billing = setup_service("billing", PROCESS)
-    run_service(billing)
+
+@server.post(f"/{name}")
+async def run(
+    order: Order,
+    background_tasks: BackgroundTasks,
+    correlation_id: Union[str, None] = Header(),
+):
+    background_tasks.add_task(run_process, name, PROCESS, correlation_id, order)
+    return order

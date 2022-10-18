@@ -1,12 +1,26 @@
 import random
-import dotenv
-from typing import Dict
+import time
+from typing import Dict, Union
+from fastapi import FastAPI, Header
+from starlette.background import BackgroundTasks
+from services.utils.models import Order
 
-from utils.util import get_url, send_service_call
-from utils.service import setup_service, run_service
-from lib.process import Activity, Process, Decision
+from services.utils.util import get_url, send_service_call
+from services.utils import config
+from services.utils.service import run_process
+from lib.process import Process, Activity, Decision, Sequence
 
-dotenv.load_dotenv()
+"""
+Setting up the server for the order service
+"""
+name = "inventory"
+server = FastAPI(title=name)
+settings = config.Settings()  # type: ignore
+
+
+"""
+Specify callback functions for process execution
+"""
 
 
 def check_inventory(data: Dict):
@@ -19,13 +33,17 @@ def check_inventory(data: Dict):
 
 def request_reorder(data: Dict):
     to = get_url("purchase")
-    send_service_call(to, data)
+    send_service_call(to, data, data["correlation_id"])
 
 
 def send_confirmation(data: Dict):
     to = get_url("message", "common")
-    send_service_call(to, data)
+    send_service_call(to, data, data["correlation_id"])
 
+
+"""
+Define the process model running in the order service
+"""
 
 PROCESS = Process(
     [
@@ -50,7 +68,16 @@ PROCESS = Process(
     ]
 )
 
+"""
+Register Routes
+"""
 
-if __name__ == "__main__":
-    inventory = setup_service("inventory", PROCESS)
-    run_service(inventory)
+
+@server.post(f"/{name}")
+async def run(
+    order: Order,
+    background_tasks: BackgroundTasks,
+    correlation_id: Union[str, None] = Header(),
+):
+    background_tasks.add_task(run_process, name, PROCESS, correlation_id, order)
+    return order

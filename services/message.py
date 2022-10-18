@@ -1,21 +1,20 @@
-import dotenv
-from flask import jsonify, request
-from flask.app import Flask
+from typing import Union
+from fastapi import FastAPI, Header
+from pydantic.main import BaseModel
+from services.utils.config import Settings
 
 from utils.util import log_request
-from utils.service import run_service, configure_service
 
-dotenv.load_dotenv()
-
-message = Flask("message")
-
-
-@message.route("/common", methods=["POST"])
-def create_invoice():
-    log_request(request, message.name)
-    return jsonify(success=True)
+name = "message"
+server = FastAPI(title=name)
+settings = Settings()  # type: ignore
 
 
-if __name__ == "__main__":
-    configure_service(message)
-    run_service(message)
+@server.post(f"/{name}")
+def create_invoice(
+    data: BaseModel,
+    correlation_id: Union[str, None] = Header(),
+):
+    id = correlation_id or "NA"
+    log_request(f"/{name}", data, name, id)
+    return dict(success=True)

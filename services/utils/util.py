@@ -1,9 +1,10 @@
-import os
 import json
+import os
+import uuid
 import requests
 import datetime
-from typing import Dict, Optional
-from flask.wrappers import Request
+from pydantic.main import BaseModel
+from typing import Dict, Optional, Union
 
 from lib.process import ProcessRunner
 
@@ -12,34 +13,33 @@ BASE_DIR = os.environ.get("BASE_DIR", os.path.join(USER_DIR, "process_simulation
 LOG_DIR = os.environ.get("LOG_DIR", os.path.join(BASE_DIR, "logs"))
 
 
-def send_service_call(endpoint: str, data: Dict):
-    json_data_s = json.dumps(data, default=lambda _: "<not serializable>")
-    json_data = json.loads(json_data_s)
-    return requests.post(endpoint, json=json_data, headers=data["request"].headers)
+def send_service_call(
+    endpoint: str, data: Dict, correlation_id: str, headers: Dict = dict()
+):
+    _headers = dict(correlation_id=correlation_id, **headers)
+    return requests.post(endpoint, json=data, headers=_headers)
 
 
 def get_url(service: str, operation: Optional[str] = None):
-    host = os.environ.get("FLASK_RUN_HOST")
-    port = os.environ.get(f"{service.upper()}_FLASK_RUN_PORT")
+    host = os.getenv("HOST")
+    port = os.getenv(f"{service.upper()}_PORT")
     if operation is not None:
         return f"http://{host}:{port}/{operation}"
     return f"http://{host}:{port}/"
 
 
-def log_request(request: Request, service_name: str):
-    id = request.headers.get("CORRELATION_ID", type=int)
+def log_request(endpoint: str, data: BaseModel, service_name: str, id: Union[str, int]):
     now_iso = datetime.datetime.now().isoformat()
-    data = request.get_data()
-    path_f = "-".join(list(filter(None, request.path.split("/"))))
+    message = data.json()
 
-    m_file_name = f"{path_f}_{now_iso}.log.req"
+    m_file_name = f"{uuid.uuid4()}.log.req"
     m_file = os.path.join(LOG_DIR, "process", service_name, "messages", m_file_name)
-    with open(m_file, "bw") as file:
-        file.write(data)
+    with open(m_file, "w") as file:
+        file.write(message)
 
     a_file = os.path.join(LOG_DIR, "process", service_name, "annotations.log.csv")
     with open(a_file, "a") as file:
-        file.write(f"{id},{m_file_name},{now_iso},{request.path}\n")
+        file.write(f"{id},{m_file_name},{now_iso},{endpoint}\n")
 
 
 def log_runner(runner: ProcessRunner, service_name: str):
