@@ -2,7 +2,7 @@ from collections import OrderedDict
 import random
 import string
 import pandas as pd
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 from datetime import datetime, timedelta
 
 
@@ -172,7 +172,9 @@ class ProcessRunner:
         self.data = dict()
 
     def execute(
-        self, start_time: Optional[datetime] = None, case_id: Optional[int] = None
+        self,
+        start_time: Optional[datetime] = None,
+        case_id: Optional[Union[int, str]] = None,
     ) -> None:
         self.start = datetime.now()
         if start_time:
@@ -181,6 +183,7 @@ class ProcessRunner:
         if case_id:
             self.case_id = case_id
         else:
+            assert isinstance(self.case_id, int)
             self.case_id += self.case_id
 
         self.process._execute(self)
