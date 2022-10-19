@@ -164,6 +164,9 @@ cython_debug/
 # Vim as IDE
 .vim/
 
+# scratchpad notebook
+tmp.ipynb
+
 # data and logs
 logs/process/*
 logs/server/*
