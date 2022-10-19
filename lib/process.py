@@ -118,6 +118,7 @@ class Decision(ProcessPart):
         if not probabilities:
             probabilities = [(100 / len(options)) for i in range(len(options))]
         self.true_rates = probabilities
+        self.condition = condition
 
     def _decide(self) -> int:
         pick = random.randint(0, 100)
@@ -135,6 +136,8 @@ class Decision(ProcessPart):
     def _execute_part(self, initiator: ProcessPart) -> None:
         super()._execute_part(initiator)
         option_idx = self._decide()
+        if self.condition is not None:
+            option_idx = self.condition(self.case.data)
         self.options[option_idx]._execute_part(self)
         self._launch_next_part()
 
