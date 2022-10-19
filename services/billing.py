@@ -22,8 +22,8 @@ Specify callback functions for process execution
 
 
 def send_invoice(data: Dict):
-    to = get_url("message", "common")
-    send_service_call(to, data, data["correlation_id"])
+    to = get_url("message", "message")
+    send_service_call(name, to, data, data["correlation_id"])
 
 
 """

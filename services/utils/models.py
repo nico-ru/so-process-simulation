@@ -9,3 +9,8 @@ class Item(BaseModel):
 
 class Order(BaseModel):
     items: List[Item]
+
+
+class Availability(BaseModel):
+    available: List[Item]
+    inavailable: List[Item]

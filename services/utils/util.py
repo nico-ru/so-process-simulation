@@ -3,7 +3,7 @@ import os
 import uuid
 import requests
 import datetime
-from pydantic.main import BaseModel
+from pathlib import Path
 from typing import Dict, Optional, Union
 
 from lib.process import ProcessRunner
@@ -11,13 +11,15 @@ from lib.process import ProcessRunner
 USER_DIR = os.path.join(os.path.expanduser("~"))
 BASE_DIR = os.environ.get("BASE_DIR", os.path.join(USER_DIR, "process_simulation"))
 LOG_DIR = os.environ.get("LOG_DIR", os.path.join(BASE_DIR, "logs"))
+STORAGE_DIR = os.environ.get("STORAGE_DIR", os.path.join(BASE_DIR, "runtime"))
 
 
 def send_service_call(
-    endpoint: str, data: Dict, correlation_id: str, headers: Dict = dict()
+    sender: str, endpoint: str, data: Dict, correlation_id: str, headers: Dict = dict()
 ):
-    _headers = dict(correlation_id=correlation_id, **headers)
-    return requests.post(endpoint, json=data, headers=_headers)
+    _headers = {"correlation-id": correlation_id}
+    log_event(endpoint, json.dumps(data), sender, correlation_id)
+    return requests.post(endpoint, json=data, headers=dict(**_headers, **headers))
 
 
 def get_url(service: str, operation: Optional[str] = None):
@@ -28,14 +30,19 @@ def get_url(service: str, operation: Optional[str] = None):
     return f"http://{host}:{port}/"
 
 
-def log_request(endpoint: str, data: BaseModel, service_name: str, id: Union[str, int]):
+def log_event(
+    endpoint: str,
+    data: str,
+    service_name: str,
+    id: Union[str, int],
+    type: str = "msg",
+):
     now_iso = datetime.datetime.now().isoformat()
-    message = data.json()
 
-    m_file_name = f"{uuid.uuid4()}.log.req"
+    m_file_name = f"{uuid.uuid4()}.log.{type}"
     m_file = os.path.join(LOG_DIR, "process", service_name, "messages", m_file_name)
     with open(m_file, "w") as file:
-        file.write(message)
+        file.write(data)
 
     a_file = os.path.join(LOG_DIR, "process", service_name, "annotations.log.csv")
     with open(a_file, "a") as file:
@@ -49,3 +56,25 @@ def log_runner(runner: ProcessRunner, service_name: str):
         index=False,
         header=False,
     )
+
+
+class ProcessStatus:
+    def __init__(self, name: str, correlation_id: str):
+        self.name = name
+        self.correlation_id = correlation_id
+
+        self.status_file = Path(os.path.join(STORAGE_DIR, f"{name}_{correlation_id}"))
+
+    def read_process_status(self):
+        if self.status_file.exists():
+            return json.loads(self.status_file.read_text())
+        return dict()
+
+    def set_process_status(self, params: Dict):
+        status = self.read_process_status()
+        status.update(**params)
+        self.status_file.write_text(json.dumps(status))
+
+    def waiting(self):
+        status = self.read_process_status()
+        return status.get("waiting", False)

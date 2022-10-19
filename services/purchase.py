@@ -11,7 +11,7 @@ from lib.process import Process, Activity
 """
 Setting up the server for the order service
 """
-name = "inventory"
+name = "purchase"
 server = FastAPI(title=name)
 settings = config.Settings()  # type: ignore
 
@@ -22,8 +22,9 @@ Specify callback functions for process execution
 
 
 def inform_about_restock(data: Dict):
-    to = get_url("message", "common")
-    send_service_call(to, data, data["correlation_id"])
+    message = data["message"]
+    to = get_url("message", "message")
+    send_service_call(name, to, message, data["correlation_id"])
 
 
 """

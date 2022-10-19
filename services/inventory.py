@@ -1,3 +1,4 @@
+import math
 import random
 import time
 from typing import Dict, Union
@@ -24,21 +25,34 @@ Specify callback functions for process execution
 
 
 def check_inventory(data: Dict):
-    data["unavailable_products"] = []
-    for product in data["request"].get_json():
-        available = random.randint(0, 100) > 10
-        if not available:
-            data["unavailable_products"].append(product)
+    order = data["message"]
+
+    # compute availability of products
+    availability = dict(available=list(), inavailable=list())
+    for item in order["items"]:
+        qty = item["quantity"]
+        available_qty = math.ceil(random.gauss((qty * 1.3), qty))
+        if qty < available_qty:
+            availability["inavailable"].append(
+                {"name": item["name"], "quantity": (qty - available_qty)}
+            )
+        else:
+            availability["available"].append(item)
+
+    # update process status data
+    data.update(**availability)
 
 
 def request_reorder(data: Dict):
-    to = get_url("purchase")
-    send_service_call(to, data, data["correlation_id"])
+    message = {"items": data["inavailable"]}
+    to = get_url("purchase", "purchase")
+    send_service_call(name, to, message, data["correlation_id"])
 
 
 def send_confirmation(data: Dict):
-    to = get_url("message", "common")
-    send_service_call(to, data, data["correlation_id"])
+    message = {"available": data["available"], "inavailable": data["inavailable"]}
+    to = get_url("order", "order/availability")
+    send_service_call(name, to, message, data["correlation_id"])
 
 
 """
@@ -59,7 +73,7 @@ PROCESS = Process(
                     execution=request_reorder,
                 ),
             ],
-            condition=lambda data: 1 if len(data["unavailable_products"]) > 0 else 0,
+            condition=lambda data: 0 if len(data["inavailable"]) == 0 else 1,
         ),
         Activity(
             "send confirmation",
