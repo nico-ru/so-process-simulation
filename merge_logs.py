@@ -34,6 +34,7 @@ def main(services):
                     "CORRELATION_ID",
                     "MESSAGE",
                     "TIMESTAMP",
+                    "SERVICE",
                     "ENDPOINT",
                 ],  # type:ignore
             )

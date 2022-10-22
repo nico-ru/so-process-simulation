@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+import logging
 import requests
 import datetime
 from pathlib import Path
@@ -12,6 +13,21 @@ USER_DIR = os.path.join(os.path.expanduser("~"))
 BASE_DIR = os.environ.get("BASE_DIR", os.path.join(USER_DIR, "process_simulation"))
 LOG_DIR = os.environ.get("LOG_DIR", os.path.join(BASE_DIR, "logs"))
 STORAGE_DIR = os.environ.get("STORAGE_DIR", os.path.join(BASE_DIR, "runtime"))
+
+
+def get_logger(name):
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler(
+        filename=os.path.join(LOG_DIR, "server", f"{name}_DEBUG.log")
+    )
+    formatter = logging.Formatter(
+        "%(asctime)s - %(module)s - %(funcName)s - line:%(lineno)d - %(levelname)s - %(message)s"
+    )
+
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)  # Exporting logs to a file
+    return logger
 
 
 def send_service_call(
@@ -46,7 +62,7 @@ def log_event(
 
     a_file = os.path.join(LOG_DIR, "process", service_name, "annotations.log.csv")
     with open(a_file, "a") as file:
-        file.write(f"{id},{m_file_name},{now_iso},{endpoint}\n")
+        file.write(f"{id},{m_file_name},{now_iso},{service_name},{endpoint}\n")
 
 
 def log_runner(runner: ProcessRunner, service_name: str):
