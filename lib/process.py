@@ -1,7 +1,8 @@
-from collections import OrderedDict
 import random
 import string
+import time
 import pandas as pd
+from collections import OrderedDict
 from typing import Callable, Dict, List, Optional, Union
 from datetime import datetime, timedelta
 
@@ -53,10 +54,13 @@ class Activity(ProcessPart):
     def _execute_part(self, initiator: ProcessPart) -> None:
         super()._execute_part(initiator)
 
+        delta = self._get_execution_time()
         if self.name:
             start = self.case.start
             if self.case.realtime:
                 start = datetime.now()
+                if delta.seconds != 0:
+                    time.sleep(delta.seconds)
 
             event = [
                 self.case.case_id,
@@ -70,7 +74,8 @@ class Activity(ProcessPart):
         if self.execution:
             self.execution(self.case.data)
 
-        self.case.start = self.case.start + self._get_execution_time()
+        if not self.case.realtime:
+            self.case.start = self.case.start + delta
         self._launch_next_part()
 
     def _get_noise(self):

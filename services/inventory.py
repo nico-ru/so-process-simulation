@@ -27,7 +27,6 @@ Specify callback functions for process execution
 
 def check_inventory(data: Dict):
     order = data["message"]
-    time.sleep(10)
 
     # compute availability of products
     availability = dict(available=list(), inavailable=list())
@@ -71,10 +70,7 @@ async def run(
 ):
     process = Process(
         [
-            Activity(
-                "check inverntory",
-                execution=check_inventory,
-            ),
+            Activity("check inverntory", execution=check_inventory, t=10),
             Decision(
                 [
                     Activity(),
