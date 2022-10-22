@@ -4,7 +4,7 @@ from pydantic.main import BaseModel
 from starlette.background import BackgroundTasks
 from services.utils.models import Availability, Order
 
-from services.utils.util import get_url, send_service_call
+from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
 from services.utils.service import (
     get_process_status,
@@ -21,6 +21,7 @@ Setting up the server for the order service
 name = "order"
 server = FastAPI(title=name)
 settings = config.Settings()  # type: ignore
+logger = get_logger(name)
 
 
 """

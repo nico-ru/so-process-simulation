@@ -3,7 +3,7 @@ from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
 from services.utils.models import Order
 
-from services.utils.util import get_url, send_service_call
+from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
 from services.utils.service import run_process
 from lib.process import Process, Activity
@@ -14,6 +14,7 @@ Setting up the server for the order service
 name = "purchase"
 server = FastAPI(title=name)
 settings = config.Settings()  # type: ignore
+logger = get_logger(name)
 
 
 """

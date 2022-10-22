@@ -1,15 +1,14 @@
 import math
 import random
-import time
 from typing import Dict, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
 from services.utils.models import Order
 
-from services.utils.util import get_url, send_service_call
+from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
 from services.utils.service import run_process
-from lib.process import Process, Activity, Decision, Sequence
+from lib.process import Process, Activity, Decision
 
 """
 Setting up the server for the order service
@@ -17,6 +16,7 @@ Setting up the server for the order service
 name = "inventory"
 server = FastAPI(title=name)
 settings = config.Settings()  # type: ignore
+logger = get_logger(name)
 
 
 """

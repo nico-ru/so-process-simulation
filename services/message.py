@@ -2,11 +2,12 @@ from typing import Union
 from fastapi import FastAPI, Header, Request
 from services.utils.config import Settings
 
-from services.utils.util import log_event
+from services.utils.util import get_logger, log_event
 
 name = "message"
 server = FastAPI(title=name)
 settings = Settings()  # type: ignore
+logger = get_logger(name)
 
 
 @server.post(f"/{name}")
