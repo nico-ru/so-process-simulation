@@ -30,20 +30,7 @@ def inform_about_restock(data: Dict):
 
 """
 Define the process model running in the order service
-"""
-
-PROCESS = Process(
-    [
-        Activity("reorder inventory"),
-        Activity(
-            "inform about restock",
-            execution=inform_about_restock,
-        ),
-    ]
-)
-
-"""
-Register Routes
+and register Routes
 """
 
 
@@ -53,5 +40,14 @@ async def run(
     background_tasks: BackgroundTasks,
     correlation_id: Union[str, None] = Header(),
 ):
-    background_tasks.add_task(run_process, name, PROCESS, correlation_id, order)
+    process = Process(
+        [
+            Activity("reorder inventory"),
+            Activity(
+                "inform about restock",
+                execution=inform_about_restock,
+            ),
+        ]
+    )
+    background_tasks.add_task(run_process, name, process, correlation_id, order)
     return order

@@ -29,20 +29,7 @@ def send_invoice(data: Dict):
 
 """
 Define the process model running in the order service
-"""
-
-PROCESS = Process(
-    [
-        Activity("prepare invoice"),
-        Activity(
-            "send invoice",
-            execution=send_invoice,
-        ),
-    ]
-)
-
-"""
-Register Routes
+and register Routes
 """
 
 
@@ -52,5 +39,14 @@ async def run(
     background_tasks: BackgroundTasks,
     correlation_id: Union[str, None] = Header(),
 ):
-    background_tasks.add_task(run_process, name, PROCESS, correlation_id, order)
+    process = Process(
+        [
+            Activity("prepare invoice"),
+            Activity(
+                "send invoice",
+                execution=send_invoice,
+            ),
+        ]
+    )
+    background_tasks.add_task(run_process, name, process, correlation_id, order)
     return order

@@ -69,39 +69,7 @@ def clean(data: Dict):
 
 """
 Define the process model running in the order service
-"""
-PROCESS = Process(
-    [
-        Activity("analyze request"),
-        Activity(
-            "check availability",
-            execution=check_availability,
-        ),
-        Activity(
-            "receive information",
-            execution=receive_information,
-        ),
-        Decision(
-            [
-                Sequence(
-                    [
-                        Activity("request invoice", execution=reqeust_invoice),
-                        Activity("confirm order", execution=confirm_order),
-                    ]
-                ),
-                Activity("reject order", execution=reject_order),
-            ],
-            condition=lambda data: 0
-            if len(data["availability"]["inavailable"]) == 0
-            else 1,
-        ),
-        Activity(execution=clean),
-    ]
-)
-
-
-"""
-Register Routes
+and register Routes
 """
 
 
@@ -111,7 +79,35 @@ async def run(
     background_tasks: BackgroundTasks,
     correlation_id: Union[str, None] = Header(),
 ):
-    background_tasks.add_task(run_process, name, PROCESS, correlation_id, order)
+    process = Process(
+        [
+            Activity("analyze request"),
+            Activity(
+                "check availability",
+                execution=check_availability,
+            ),
+            Activity(
+                "receive information",
+                execution=receive_information,
+            ),
+            Decision(
+                [
+                    Sequence(
+                        [
+                            Activity("request invoice", execution=reqeust_invoice),
+                            Activity("confirm order", execution=confirm_order),
+                        ]
+                    ),
+                    Activity("reject order", execution=reject_order),
+                ],
+                condition=lambda data: 0
+                if len(data["availability"]["inavailable"]) == 0
+                else 1,
+            ),
+            Activity(execution=clean),
+        ]
+    )
+    background_tasks.add_task(run_process, name, process, correlation_id, order)
     return order
 
 
