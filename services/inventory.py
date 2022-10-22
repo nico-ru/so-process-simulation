@@ -32,9 +32,9 @@ def check_inventory(data: Dict):
     for item in order["items"]:
         qty = item["quantity"]
         available_qty = math.ceil(random.gauss((qty * 1.3), qty))
-        if qty < available_qty:
+        if qty > available_qty:
             availability["inavailable"].append(
-                {"name": item["name"], "quantity": (qty - available_qty)}
+                {"name": item["name"], "quantity": (available_qty - qty)}
             )
         else:
             availability["available"].append(item)
