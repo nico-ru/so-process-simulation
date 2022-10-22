@@ -41,7 +41,7 @@ def main(services):
             frames.append(df)
 
     log = pandas.concat(frames, ignore_index=True)
-    log["TIMESTAMP"] = pandas.to_datetime(log["TIMESTAMP"])
+    log["TIMESTAMP"] = pandas.to_datetime(log["TIMESTAMP"])  # type:ignore
     log.sort_values("TIMESTAMP", inplace=True)
     log.reset_index(inplace=True, drop=True)
 
