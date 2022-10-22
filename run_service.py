@@ -22,6 +22,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--service",
+        required=True,
         default=None,
         help="service to run (default: None)",
     )
