@@ -171,6 +171,7 @@ tmp.ipynb
 logs/process/*
 logs/server/*
 logs/compound/*
+runtime/*
 
 # hydra runs
 /multirun
