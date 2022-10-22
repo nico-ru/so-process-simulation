@@ -36,3 +36,7 @@ def insert_process_data(name: str, correlation_id: str, data: Dict):
 
 def get_process_status(name: str, correlation_id: str):
     return ProcessStatus(name, correlation_id).read_process_status()
+
+
+def end_process(name: str, correlation_id: str):
+    ProcessStatus(name, correlation_id).teardown()

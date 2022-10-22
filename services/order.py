@@ -1,12 +1,12 @@
 from typing import Dict, Union
 from fastapi import FastAPI, Header
-from pydantic.main import BaseModel
 from starlette.background import BackgroundTasks
 from services.utils.models import Availability, Order
 
 from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
 from services.utils.service import (
+    end_process,
     get_process_status,
     insert_process_data,
     pause_process,
@@ -63,6 +63,10 @@ def reject_order(data: Dict):
     send_service_call(name, to, inavailable, data["correlation_id"])
 
 
+def clean(data: Dict):
+    end_process(name, data["correlation_id"])
+
+
 """
 Define the process model running in the order service
 """
@@ -91,6 +95,7 @@ PROCESS = Process(
             if len(data["availability"]["inavailable"]) == 0
             else 1,
         ),
+        Activity(execution=clean),
     ]
 )
 

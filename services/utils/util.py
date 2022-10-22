@@ -81,16 +81,19 @@ class ProcessStatus:
 
         self.status_file = Path(os.path.join(STORAGE_DIR, f"{name}_{correlation_id}"))
 
-    def read_process_status(self):
+    def read_process_status(self) -> Dict:
         if self.status_file.exists():
             return json.loads(self.status_file.read_text())
         return dict()
 
-    def set_process_status(self, params: Dict):
+    def set_process_status(self, params: Dict) -> None:
         status = self.read_process_status()
         status.update(**params)
         self.status_file.write_text(json.dumps(status))
 
-    def waiting(self):
+    def teardown(self):
+        self.status_file.unlink(missing_ok=True)
+
+    def waiting(self) -> bool:
         status = self.read_process_status()
         return status.get("waiting", False)
