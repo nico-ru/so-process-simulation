@@ -9,7 +9,7 @@ from .util import ProcessStatus, log_runner
 def run_process(
     name: str, process: Process, correlation_id: Union[str, None], data: BaseModel
 ):
-    runner = ProcessRunner(process)
+    runner = ProcessRunner(process, realtime=True)
     runner.data["correlation_id"] = correlation_id
     runner.data["message"] = data.dict()
     runner.execute(case_id=correlation_id)

@@ -54,10 +54,14 @@ class Activity(ProcessPart):
         super()._execute_part(initiator)
 
         if self.name:
+            start = self.case.start
+            if self.case.realtime:
+                start = datetime.now()
+
             event = [
                 self.case.case_id,
                 self.name,
-                self.case.start.isoformat(),
+                start.isoformat(),
                 *list(self.attributes.values()),
             ]
             self.case.trace.append(event)
@@ -161,7 +165,7 @@ class Process:
 
 
 class ProcessRunner:
-    def __init__(self, process: Process, noise_rate: int = 0):
+    def __init__(self, process: Process, noise_rate: int = 0, realtime: bool = False):
         """
         initializes given process
         Parameters:
@@ -173,6 +177,7 @@ class ProcessRunner:
         self.noise_rate = noise_rate
         self.trace = []
         self.data = dict()
+        self.realtime = realtime
 
     def execute(
         self,
