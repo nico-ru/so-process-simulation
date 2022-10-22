@@ -21,7 +21,6 @@ def pause_process(name: str, correlation_id: str):
     status.set_process_status(dict(waiting=True))
     while status.waiting():
         time.sleep(0.1)
-        print(f"{name} - {correlation_id} sleeping ....")
 
 
 def resume_process(name: str, correlation_id: str):
