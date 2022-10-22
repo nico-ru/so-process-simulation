@@ -7,11 +7,12 @@ dotenv.load_dotenv()
 
 
 def main(service: str):
+    reload = int(os.getenv("RELOAD", 0)) == 1
     uvicorn.run(
         app=f"services.{service}:server",
         host=os.getenv("HOST", "localhost"),
         port=int(os.getenv(f"{service.upper()}_PORT", 5000)),
-        reload=bool(os.getenv("RELOAD", True)),
+        reload=reload,
     )
 
 
