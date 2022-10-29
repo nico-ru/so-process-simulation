@@ -1,7 +1,8 @@
+from random import random
 from typing import Dict, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
-from services.utils.models import Order
+from services.utils.models import InvoiceRequest, Success
 
 from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
@@ -23,8 +24,20 @@ Specify callback functions for process execution
 
 
 def send_invoice(data: Dict):
+    order = data["message"]
+    invoice_items = list()
+    total = 0
+    for item in order["items"]:
+        price = round(random() * 100, 2)
+        qty = item["qty"]
+        id = item["id"]
+        invoice_items.append(dict(id=id, qty=qty, price=price))
+        total += qty * price
+
+    message = dict(items=invoice_items, total=round(total, 2))  # type: ignore
+
     to = get_url("message", "message")
-    send_service_call(name, to, data, data["correlation_id"])
+    send_service_call(name, to, message, data["correlation_id"])
 
 
 """
@@ -35,7 +48,7 @@ and register Routes
 
 @server.post(f"/{name}")
 async def run(
-    order: Order,
+    request: InvoiceRequest,
     background_tasks: BackgroundTasks,
     correlation_id: Union[str, None] = Header(),
 ):
@@ -48,5 +61,5 @@ async def run(
             ),
         ]
     )
-    background_tasks.add_task(run_process, name, process, correlation_id, order)
-    return order
+    background_tasks.add_task(run_process, name, process, correlation_id, request)
+    return Success(success=True)

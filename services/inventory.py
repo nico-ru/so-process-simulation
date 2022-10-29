@@ -1,10 +1,9 @@
-import time
 import math
 import random
 from typing import Dict, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
-from services.utils.models import Order
+from services.utils.models import AvailabilityRequest, Success
 
 from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
@@ -31,27 +30,33 @@ def check_inventory(data: Dict):
     # compute availability of products
     availability = dict(available=list(), inavailable=list())
     for item in order["items"]:
-        qty = item["quantity"]
-        available_qty = math.ceil(random.gauss((qty * 1.3), qty))
+        qty = item["qty"]
+        available_qty = abs(math.ceil(random.gauss((qty * 1.4), qty * 0.5)))
         if qty > available_qty:
             availability["inavailable"].append(
-                {"name": item["name"], "quantity": (available_qty - qty)}
+                {"id": item["id"], "missing": abs(available_qty - qty)}
             )
         else:
-            availability["available"].append(item)
+            availability["available"].append(item["id"])
 
     # update process status data
     data.update(**availability)
 
 
 def request_reorder(data: Dict):
-    message = {"items": data["inavailable"]}
+    inavailable = data["inavailable"]
+    reorder_items = list()
+    for item in inavailable:
+        reorder_items.append(dict(id=item["id"]))
+    message = dict(items=reorder_items)
+
     to = get_url("purchase", "purchase")
     send_service_call(name, to, message, data["correlation_id"])
 
 
 def send_confirmation(data: Dict):
     message = {"available": data["available"], "inavailable": data["inavailable"]}
+
     to = get_url("order", "order/availability")
     send_service_call(name, to, message, data["correlation_id"])
 
@@ -64,7 +69,7 @@ and register Routes
 
 @server.post(f"/{name}")
 async def run(
-    order: Order,
+    request: AvailabilityRequest,
     background_tasks: BackgroundTasks,
     correlation_id: Union[str, None] = Header(),
 ):
@@ -87,5 +92,5 @@ async def run(
             ),
         ]
     )
-    background_tasks.add_task(run_process, name, process, correlation_id, order)
-    return order
+    background_tasks.add_task(run_process, name, process, correlation_id, request)
+    return Success(success=True)

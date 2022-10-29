@@ -1,6 +1,7 @@
 from typing import Union
 from fastapi import FastAPI, Header, Request
 from services.utils.config import Settings
+from services.utils.models import Success
 
 from services.utils.util import get_logger, log_event
 
@@ -20,4 +21,4 @@ async def create_invoice(
     async for chunk in request.stream():
         body += chunk
     log_event(f"/{name}", body.decode("utf-8"), name, id, type="req")
-    return dict(success=True)
+    return Success(success=True)

@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
+from random import randint, random
 from typing import Dict, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
-from services.utils.models import Availability, Order
+from services.utils.models import Availability, Order, Success
 
 from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
@@ -30,8 +32,10 @@ Specify callback functions for process execution
 
 
 def check_availability(data: Dict):
+    order = data.get("message", {})
+    message = dict(items=order["items"])
+
     to = get_url("inventory", "inventory")
-    message = data.get("message", {})
     send_service_call(name, to, message, data["correlation_id"])
 
 
@@ -46,24 +50,30 @@ def receive_information(data: Dict):
 
 
 def reqeust_invoice(data: Dict):
+    order = data.get("message", {})
+    message = dict(items=order["items"])
+
     to = get_url("billing", "billing")
-    message = data.get("message", {})
     send_service_call(name, to, message, data["correlation_id"])
 
 
 def confirm_order(data: Dict):
+    arrive_date = datetime.now() + timedelta(days=randint(1, 14))
+    message = dict(date=str(arrive_date.date()))
+
     to = get_url("message", "message")
-    message = data.get("message", {})
     send_service_call(name, to, message, data["correlation_id"])
 
 
 def reject_order(data: Dict):
-    to = get_url("message", "message")
     inavailable = data["availability"]["inavailable"]
-    send_service_call(name, to, inavailable, data["correlation_id"])
+    message = dict(items=inavailable)
+
+    to = get_url("message", "message")
+    send_service_call(name, to, message, data["correlation_id"])
 
 
-def clean(data: Dict):
+def teardown(data: Dict):
     end_process(name, data["correlation_id"])
 
 
@@ -104,11 +114,11 @@ async def run(
                 if len(data["availability"]["inavailable"]) == 0
                 else 1,
             ),
-            Activity(execution=clean),
+            Activity(execution=teardown),
         ]
     )
     background_tasks.add_task(run_process, name, process, correlation_id, order)
-    return order
+    return Success(success=True)
 
 
 @server.post(f"/{name}/availability")
@@ -120,4 +130,4 @@ async def receive_availability(
             name, correlation_id, dict(availability=availability.dict())
         )
         resume_process(name, correlation_id)
-    return availability
+    return Success(success=True)

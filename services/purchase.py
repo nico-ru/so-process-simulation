@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
+from random import randint
 from typing import Dict, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
-from services.utils.models import Order
+from services.utils.models import Order, ReorderRequest, Success
 
 from services.utils.util import get_logger, get_url, send_service_call
 from services.utils import config
@@ -23,7 +25,14 @@ Specify callback functions for process execution
 
 
 def inform_about_restock(data: Dict):
-    message = data["message"]
+    order = data["message"]
+    reordered_items = list()
+    for item in order["items"]:
+        id = item["id"]
+        available_date = datetime.now() + timedelta(days=randint(7, 31))
+        reordered_items.append(dict(id=id, date=str(available_date.date())))
+    message = dict(items=reordered_items)
+
     to = get_url("message", "message")
     send_service_call(name, to, message, data["correlation_id"])
 
@@ -36,7 +45,7 @@ and register Routes
 
 @server.post(f"/{name}")
 async def run(
-    order: Order,
+    request: ReorderRequest,
     background_tasks: BackgroundTasks,
     correlation_id: Union[str, None] = Header(),
 ):
@@ -49,5 +58,5 @@ async def run(
             ),
         ]
     )
-    background_tasks.add_task(run_process, name, process, correlation_id, order)
-    return order
+    background_tasks.add_task(run_process, name, process, correlation_id, request)
+    return Success(success=True)
