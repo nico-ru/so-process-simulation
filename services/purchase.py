@@ -51,11 +51,8 @@ async def run(
 ):
     process = Process(
         [
-            Activity("reorder inventory"),
-            Activity(
-                "inform about restock",
-                execution=inform_about_restock,
-            ),
+            Activity("reorder inventory", t=8),
+            Activity("inform about restock", execution=inform_about_restock, t=2),
         ]
     )
     background_tasks.add_task(run_process, name, process, correlation_id, request)

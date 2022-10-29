@@ -92,10 +92,7 @@ async def run(
     process = Process(
         [
             Activity("analyze request"),
-            Activity(
-                "check availability",
-                execution=check_availability,
-            ),
+            Activity("check availability", execution=check_availability, t=1),
             Activity(
                 "receive information",
                 execution=receive_information,
@@ -104,11 +101,11 @@ async def run(
                 [
                     Sequence(
                         [
-                            Activity("request invoice", execution=reqeust_invoice),
-                            Activity("confirm order", execution=confirm_order),
+                            Activity("request invoice", execution=reqeust_invoice, t=3),
+                            Activity("confirm order", execution=confirm_order, t=4),
                         ]
                     ),
-                    Activity("reject order", execution=reject_order),
+                    Activity("reject order", execution=reject_order, t=5),
                 ],
                 condition=lambda data: 0
                 if len(data["availability"]["inavailable"]) == 0

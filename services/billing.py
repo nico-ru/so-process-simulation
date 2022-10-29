@@ -54,11 +54,8 @@ async def run(
 ):
     process = Process(
         [
-            Activity("prepare invoice"),
-            Activity(
-                "send invoice",
-                execution=send_invoice,
-            ),
+            Activity("prepare invoice", t=7),
+            Activity("send invoice", execution=send_invoice, t=3),
         ]
     )
     background_tasks.add_task(run_process, name, process, correlation_id, request)

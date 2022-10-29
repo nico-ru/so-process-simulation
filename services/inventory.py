@@ -79,17 +79,11 @@ async def run(
             Decision(
                 [
                     Activity(),
-                    Activity(
-                        "request reorder",
-                        execution=request_reorder,
-                    ),
+                    Activity("request reorder", execution=request_reorder, t=5),
                 ],
                 condition=lambda data: 0 if len(data["inavailable"]) == 0 else 1,
             ),
-            Activity(
-                "send confirmation",
-                execution=send_confirmation,
-            ),
+            Activity("send confirmation", execution=send_confirmation, t=5),
         ]
     )
     background_tasks.add_task(run_process, name, process, correlation_id, request)
