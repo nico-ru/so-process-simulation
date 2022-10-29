@@ -48,7 +48,7 @@ class Activity(ProcessPart):
         self.execution = execution
 
     def _get_execution_time(self) -> timedelta:
-        seconds = random.gauss(self.avg_time_s, (self.avg_time_s * 0.1))
+        seconds = abs(random.gauss(self.avg_time_s, (self.avg_time_s * 0.1)))
         return timedelta(seconds=seconds)
 
     def _execute_part(self, initiator: ProcessPart) -> None:
