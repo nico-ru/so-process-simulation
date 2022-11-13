@@ -1,13 +1,17 @@
 import os
 import dotenv
 import pandas
+import shutil
+import datetime
 import argparse
 
 dotenv.load_dotenv()
 
 SERVICES = {"billing", "inventory", "message", "order", "purchase"}
 LOG_DIR = os.getenv("LOG_DIR")
+RESULT_DIR = os.getenv("RESULT_DIR")
 assert LOG_DIR, "specify log directory by setting LOG_DIR environment variable"
+assert RESULT_DIR, "specify result directory by setting RESULT_DIR environment variable"
 
 
 def main(services):
@@ -44,7 +48,18 @@ def main(services):
     log.sort_values("TIMESTAMP", inplace=True)
     log.reset_index(inplace=True, drop=True)
 
-    dir = os.path.join(LOG_DIR, "compound", compound_name)
+    now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    dir = os.path.join(RESULT_DIR, f"{compound_name}_{now}")
+    doc_dir = os.path.join(dir, "documents")
+    os.makedirs(doc_dir, exist_ok=True)
+
+    for _, row in log.iterrows():
+        service = row['SERVICE']
+        filename = row['MESSAGE']
+        source = os.path.join(LOG_DIR, "process", service, "messages", filename)
+        destination = os.path.join(doc_dir, filename)
+        shutil.copy(source, destination)
+
     location = os.path.join(dir, "annotations.csv")
     log.to_csv(location, index=False)
 
