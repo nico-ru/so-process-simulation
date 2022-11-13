@@ -20,5 +20,5 @@ async def create_invoice(
     body = b""
     async for chunk in request.stream():
         body += chunk
-    log_event(f"/{name}", body.decode("utf-8"), name, id, type="req")
+    # log_event(f"/{name}", body.decode("utf-8"), name, id, type="req")
     return Success(success=True)

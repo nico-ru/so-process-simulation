@@ -91,12 +91,9 @@ async def run(
 ):
     process = Process(
         [
-            Activity("analyze request"),
-            Activity("check availability", execution=check_availability, t=1),
-            Activity(
-                "receive information",
-                execution=receive_information,
-            ),
+            Activity("analyze request", t=10),
+            Activity("check availability", execution=check_availability, t=4),
+            Activity("receive information", execution=receive_information, t=10),
             Decision(
                 [
                     Sequence(
