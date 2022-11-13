@@ -173,6 +173,7 @@ logs/server/*
 logs/compound/*
 logs/simulation/*
 runtime/*
+result/*
 
 # hydra runs
 /multirun
