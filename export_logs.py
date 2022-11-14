@@ -1,4 +1,5 @@
 import os
+import pm4py
 import dotenv
 import pandas
 import shutil
@@ -54,14 +55,23 @@ def main(services):
     os.makedirs(doc_dir, exist_ok=True)
 
     for _, row in log.iterrows():
-        service = row['SERVICE']
-        filename = row['MESSAGE']
+        service = row["SERVICE"]
+        filename = row["MESSAGE"]
         source = os.path.join(LOG_DIR, "process", service, "messages", filename)
         destination = os.path.join(doc_dir, filename)
         shutil.copy(source, destination)
 
     location = os.path.join(dir, "annotations.csv")
     log.to_csv(location, index=False)
+
+    log_df_f = pm4py.format_dataframe(
+        log,
+        case_id="CORRELATION_ID",
+        activity_key="ENDPOINT",
+        timestamp_key="TIMESTAMP",
+    )
+    event_log = pm4py.convert_to_event_log(log_df_f)
+    pm4py.write_xes(event_log, os.path.join(dir, "event_log.xes"))
 
 
 if __name__ == "__main__":
