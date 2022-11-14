@@ -10,7 +10,7 @@ from services.utils.service import run_process
 from lib.process import Process, Activity
 
 """
-Setting up the server for the order service
+Setting up the server for the billing service
 """
 name = "billing"
 server = FastAPI(title=name)
@@ -41,7 +41,7 @@ def send_invoice(data: Dict):
 
 
 """
-Define the process model running in the order service
+Define the process model running in the billing service
 and register Routes
 """
 

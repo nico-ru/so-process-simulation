@@ -11,7 +11,7 @@ from services.utils.service import run_process
 from lib.process import Process, Activity, Decision
 
 """
-Setting up the server for the order service
+Setting up the server for the inventory service
 """
 name = "inventory"
 server = FastAPI(title=name)
@@ -62,7 +62,7 @@ def send_confirmation(data: Dict):
 
 
 """
-Define the process model running in the order service
+Define the process model running in the inventory service
 and register Routes
 """
 
