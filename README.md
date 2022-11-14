@@ -36,6 +36,10 @@ conda activate myenv
 # install requirements
 pip install -r requirements.txt
 
+# setup and install package
+python setup.py install
+pip install .
+
 # setup .env file according to env.example
 ```
 
