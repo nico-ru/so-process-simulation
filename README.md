@@ -12,7 +12,7 @@ A supplementary project for the thesis *"Profile-based Anomaly Detection in Serv
 ## Description
 
 The simulated system aims to mimic a webshop system consisting of individual services. Each service is responsible for a specific domain in the ordering process.  
-Purpose is to generate a log of the underlying workflow of the system. This log containing the data transferred in the communication between services. Following figure illustrates the implementsd system:
+Purpose is to generate a log of the underlying workflow of the system. This log containing the data transferred in the communication between services. Following figure illustrates the implemented system:
 
 ![Illustration of the implemented webshop micorservice system](webshop_system.png)
  
