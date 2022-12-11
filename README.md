@@ -4,7 +4,7 @@
 
 [![python](https://img.shields.io/badge/-Python_3.10-blue?logo=python&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-A sublementary project for the thesis *"Profile-based Anomaly Detection in Service Oriented Business Processes"*, for the simulation of a webshop microservice system.
+A supplementary project for the thesis *"Profile-based Anomaly Detection in Service Oriented Business Processes"*, for the simulation of a webshop microservice system.
 </div>
 
 <br>
