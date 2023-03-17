@@ -1,6 +1,7 @@
 import os
 import datetime
 import argparse
+from os.path import isfile
 from typing import Dict
 import dotenv
 import requests
@@ -12,6 +13,10 @@ from string import ascii_lowercase
 dotenv.load_dotenv()
 
 SIMULATION_DIR_NAME = datetime.datetime.now().strftime("%Y-%d-%m_%H-%M-%S")
+
+USER_DIR = os.path.join(os.path.expanduser("~"))
+BASE_DIR = os.environ.get("BASE_DIR", os.path.join(USER_DIR, "process_simulation"))
+RUNTIME_DIR = os.environ.get("RUNTIME_DIR", os.path.join(BASE_DIR, "runtime"))
 
 host = os.getenv("HOST", "localhost")
 port = int(os.getenv("ORDER_PORT", 5003))
@@ -75,7 +80,17 @@ def log_payload(payload: Dict):
         f.write(json.dumps(payload, indent=2))
 
 
+def clean_runtime():
+    for filename in os.listdir(RUNTIME_DIR):
+        if filename.startswith("."):
+            continue
+        file = os.path.join(RUNTIME_DIR, filename)
+        if os.path.isfile(file):
+            os.remove(file)
+
+
 def main(n_requests: int, delay: int):
+    clean_runtime()
     for i in range(n_requests):
         headers = {"CORRELATION-ID": str(i), "Content-Type": "application/json"}
         payload = get_payload()
