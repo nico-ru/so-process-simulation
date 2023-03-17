@@ -24,3 +24,13 @@ if [ ! -z "$DEL_FILES" ]; then
 else
     echo "nothing to delete"
 fi
+
+ANOMALIES_FILE=$(/usr/bin/find "$DIR/../logs" -type f -name "anomalies.csv")
+if [ ! -z "$ANOMALIES_FILE" ]; then
+    read -p "do you want to delete anomalies file: $ANOMALIES_FILE? ([y]/n) " -n 1 -r
+    echo    # move to a new line
+    if [[ ! $REPLY =~ ^[Nn]$ ]]
+    then
+        /usr/bin/find "$DIR/../logs" -type f -name "anomalies.csv" -exec rm {} \;
+    fi
+fi
