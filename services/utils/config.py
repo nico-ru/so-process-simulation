@@ -12,9 +12,9 @@ class Settings(BaseSettings):
     anomaly induction rates and codes
     sequence anomalies
     """
-    swap_event_rate: float = 0.003
-    skip_event_rate: float = 0.003
-    repeat_event_rate: float = 0.003
+    swap_event_rate: float = 0.004  # swap
+    skip_event_rate: float = 0.004  # skip
+    repeat_event_rate: float = 0.004  # repeat
 
     swap_event_code: int = 8
     skip_event_code: int = 16
@@ -23,9 +23,9 @@ class Settings(BaseSettings):
     """
     point anomalies
     """
-    add_key_rate: float = 0.00  # add token
-    skip_key_rate: float = 0.00  # skip token
-    modify_key_rate: float = 0.00  # replace token
+    add_key_rate: float = 0.004  # new
+    skip_key_rate: float = 0.004  # missing
+    modify_key_rate: float = 0.004  # change
 
     add_key_code: int = 4
     skip_key_code: int = 2
