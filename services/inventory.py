@@ -1,4 +1,3 @@
-import math
 import random
 from typing import Dict, Union
 from fastapi import FastAPI, Header
@@ -30,11 +29,12 @@ def check_inventory(data: Dict):
     # compute availability of products
     availability = dict(available=list(), inavailable=list())
     for item in order["items"]:
-        qty = item["qty"]
-        available_qty = abs(math.ceil(random.gauss((qty * 1.4), qty * 0.5)))
-        if qty > available_qty:
+        available = random.random() < settings.availability_rate
+        if not available:
             availability["inavailable"].append(
-                {"id": item["id"], "missing": abs(available_qty - qty)}
+                {
+                    "id": item["id"],
+                }
             )
         else:
             availability["available"].append(item["id"])
@@ -51,14 +51,14 @@ def request_reorder(data: Dict):
     message = dict(items=reorder_items)
 
     to = get_url("purchase", "purchase")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Request Reorder", name, to, message, data["correlation_id"])
 
 
 def send_confirmation(data: Dict):
     message = {"available": data["available"], "inavailable": data["inavailable"]}
 
     to = get_url("order", "order/availability")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Send Confirmation", name, to, message, data["correlation_id"])
 
 
 """

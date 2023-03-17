@@ -19,13 +19,27 @@ port = int(os.getenv("ORDER_PORT", 5003))
 url = f"http://{host}:{port}/order"
 
 
-def id():
+def id() -> str:
     """
     function to generate not so unique random product id.
     to simulate webshop with limited number of items
     """
     chars = list(ascii_lowercase[22:]) + [str(i) for i in range(1)]
-    return "".join([random.choice(chars) for _ in range(5)])
+    return "".join([random.choice(chars) for _ in range(4)])
+
+
+def get_size() -> str:
+    """
+    function to generate a random value for the size key
+    """
+    return random.choice(["XS", "S", "M", "L", "XL"])
+
+
+def get_location() -> str:
+    """
+    function to generate random location
+    """
+    return random.choice(["DE", "AT", "CH"])
 
 
 def get_payload():
@@ -34,19 +48,17 @@ def get_payload():
     example:
         {
             "items": [
-                {"id": y1y0x, "qty": 3},
-                {"id": y10z0, "qty": 2},
-                {"id": z1011, "qty": 10},
+                {"id": y1y0x, "size": "M"},
+                {"id": y10z0, "size": "L"},
+                {"id": z1011, "size": "S"},
             ]
             "location": "DE"
         }
     """
     number_items = random.randint(1, 15)
     return {
-        "items": [
-            {"id": id(), "qty": random.randint(1, 200)} for _ in range(number_items)
-        ],
-        "location": random.choice(["DE", "AT", "CH"]),
+        "items": [{"id": id(), "size": get_size()} for _ in range(number_items)],
+        "location": get_location(),
     }
 
 
@@ -86,7 +98,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--delay",
-        default=0.5,
+        default=2,
         type=float,
         help="Average delay in seconds between requests (default: .5)",
     )

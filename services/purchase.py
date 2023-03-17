@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from random import randint
+from random import randint, random, choice
 from typing import Dict, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
@@ -29,12 +29,12 @@ def inform_about_restock(data: Dict):
     reordered_items = list()
     for item in order["items"]:
         id = item["id"]
-        available_date = datetime.now() + timedelta(days=randint(7, 31))
-        reordered_items.append(dict(id=id, date=str(available_date.date())))
+        available_info = choice(["soon", "untimely", "never"])
+        reordered_items.append(dict(id=id, restock_info=available_info))
     message = dict(items=reordered_items)
 
     to = get_url("message", "message")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Inform About Restock", name, to, message, data["correlation_id"])
 
 
 """

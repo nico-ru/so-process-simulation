@@ -29,15 +29,14 @@ def send_invoice(data: Dict):
     total = 0
     for item in order["items"]:
         price = round(random() * 100, 2)
-        qty = item["qty"]
         id = item["id"]
-        invoice_items.append(dict(id=id, qty=qty, price=price))
-        total += qty * price
+        invoice_items.append(dict(id=id, price=price))
+        total += price
 
     message = dict(items=invoice_items, total=round(total, 2))  # type: ignore
 
     to = get_url("message", "message")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Send Invoice", name, to, message, data["correlation_id"])
 
 
 """

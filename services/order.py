@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from random import randint, random
-from typing import Dict, Union
+from random import randint, random, choice
+from typing import Dict, List, Union
 from fastapi import FastAPI, Header
 from starlette.background import BackgroundTasks
 from services.utils.models import Availability, Order, Success
@@ -15,7 +15,7 @@ from services.utils.service import (
     resume_process,
     run_process,
 )
-from lib.process import Process, Activity, Decision, Sequence
+from lib.process import Process, Activity, Decision, ProcessPart, Sequence
 
 """
 Setting up the server for the order service
@@ -36,7 +36,7 @@ def check_availability(data: Dict):
     message = dict(items=order["items"])
 
     to = get_url("inventory", "inventory")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Check Availability", name, to, message, data["correlation_id"])
 
 
 def receive_information(data: Dict):
@@ -54,15 +54,15 @@ def reqeust_invoice(data: Dict):
     message = dict(items=order["items"])
 
     to = get_url("billing", "billing")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Request Invoice", name, to, message, data["correlation_id"])
 
 
 def confirm_order(data: Dict):
-    arrive_date = datetime.now() + timedelta(days=randint(1, 14))
-    message = dict(date=str(arrive_date.date()))
+    arrival_info = choice(["express", "standard"])
+    message = dict(info=arrival_info)
 
     to = get_url("message", "message")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Confirm Order", name, to, message, data["correlation_id"])
 
 
 def reject_order(data: Dict):
@@ -70,7 +70,7 @@ def reject_order(data: Dict):
     message = dict(items=inavailable)
 
     to = get_url("message", "message")
-    send_service_call(name, to, message, data["correlation_id"])
+    send_service_call("Reject Order", name, to, message, data["correlation_id"])
 
 
 def teardown(data: Dict):

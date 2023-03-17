@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -18,11 +18,11 @@ class ItemBase(BaseModel):
 
 
 class Item(ItemBase):
-    qty: int
+    size: str
 
 
 class InavailibleItem(ItemBase):
-    missing: int
+    missing: Optional[int]
 
 
 class InvoiceItem(ItemBase):
@@ -30,7 +30,7 @@ class InvoiceItem(ItemBase):
 
 
 class RestockItem(ItemBase):
-    date: str
+    restock_info: str
 
 
 class Order(BaseModel):
@@ -44,15 +44,15 @@ class OrderInternal(BaseModel):
 
 class Availability(BaseModel):
     available: List[str]
-    inavailable: List[InavailibleItem]
+    inavailable: List[ItemBase]
 
 
 class Rejection(BaseModel):
-    inavailable: List[InavailibleItem]
+    inavailable: List[ItemBase]
 
 
 class Confirmation(BaseModel):
-    date: str
+    info: str
 
 
 class Resotck(BaseModel):
@@ -64,7 +64,7 @@ class Invoice(BaseModel):
     total: float
 
 
-class ReorderRequest(OrderInternal):
+class ReorderRequest(BaseModel):
     items: List[ItemBase]
 
 

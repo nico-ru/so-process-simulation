@@ -1,13 +1,17 @@
 import json
 import os
+import random
+import string
 import uuid
 import logging
 import requests
 import datetime
+import re
 from pathlib import Path
 from typing import Dict, Optional, Union
 
 from lib.process import ProcessRunner
+from services.utils.config import Settings
 
 USER_DIR = os.path.join(os.path.expanduser("~"))
 BASE_DIR = os.environ.get("BASE_DIR", os.path.join(USER_DIR, "process_simulation"))
@@ -31,10 +35,15 @@ def get_logger(name):
 
 
 def send_service_call(
-    sender: str, endpoint: str, data: Dict, correlation_id: str, headers: Dict = dict()
+    activity: str,
+    sender: str,
+    endpoint: str,
+    data: Dict,
+    correlation_id: str,
+    headers: Dict = dict(),
 ):
     _headers = {"correlation-id": correlation_id}
-    log_event(endpoint, json.dumps(data), sender, correlation_id)
+    log_event(endpoint, data, sender, activity, correlation_id)
     return requests.post(endpoint, json=data, headers=dict(**_headers, **headers))
 
 
@@ -48,21 +57,42 @@ def get_url(service: str, operation: Optional[str] = None):
 
 def log_event(
     endpoint: str,
-    data: str,
+    data: Dict,
     service_name: str,
+    activity: str,
     id: Union[str, int],
     type: str = "msg",
 ):
-    now_iso = datetime.datetime.now().isoformat()
+    setting = Settings()
+    now = datetime.datetime.now()
+    data, timestamp, code = induce_anomaly(data, now)
+    message = json.dumps(data)
+
+    if code != 0:
+        anomaly_file = os.path.join(LOG_DIR, "anomalies.csv")
+        with open(anomaly_file, "a") as file:
+            file.write(
+                f"{id},{timestamp},{service_name},{endpoint},{activity},{code}\n"
+            )
+
+    if code == setting.skip_event_code:
+        return
+
+    match = re.search(r"http:\/\/\w+:\d+\/(?P<endpoint>.+)", endpoint)
+    if match is not None:
+        endpoint = match.group("endpoint")
 
     m_file_name = f"{uuid.uuid4()}.log.{type}"
     m_file = os.path.join(LOG_DIR, "process", service_name, "messages", m_file_name)
     with open(m_file, "w") as file:
-        file.write(data)
+        file.write(message)
 
     a_file = os.path.join(LOG_DIR, "process", service_name, "annotations.log.csv")
     with open(a_file, "a") as file:
-        file.write(f"{id},{m_file_name},{now_iso},{service_name},{endpoint}\n")
+        line = f"{id},{m_file_name},{timestamp},{service_name},{endpoint},{activity},{code}\n"
+        file.write(line)
+        if code == setting.repeat_event_code:
+            file.write(line)
 
 
 def log_runner(runner: ProcessRunner, service_name: str):
@@ -72,6 +102,65 @@ def log_runner(runner: ProcessRunner, service_name: str):
         index=False,
         header=False,
     )
+
+
+def induce_anomaly(data: Dict, now: datetime.datetime):
+    code = 0
+    settings = Settings()
+
+    if random.random() < settings.skip_event_rate:
+        code += settings.skip_event_code
+
+    if random.random() < settings.repeat_event_rate:
+        code += settings.repeat_event_code
+
+    if random.random() < settings.swap_event_rate:
+        now = now + datetime.timedelta(seconds=random.randint(15, 30))
+        code += settings.swap_event_code
+
+    if random.random() < settings.add_key_rate:
+        key = "".join(random.choices(string.ascii_letters, k=5))
+        value = "".join(random.choices(string.ascii_letters, k=5))
+        data.update({key: value})
+        code += settings.add_key_code
+
+    data, modified, skipped = modify_keys(
+        data, settings.skip_event_rate, settings.modify_key_rate
+    )
+
+    if skipped:
+        code += settings.skip_key_code
+
+    if modified:
+        code += settings.modify_key_code
+
+    return data, now.isoformat(), code
+
+
+def modify_keys(d, skip_rate: float, modify_rate: float):
+    modified = False
+    skipped = False
+    for k, v in d.copy().items():
+        if isinstance(v, dict):
+            d.pop(k)
+            if random.random() < skip_rate:
+                skipped = True
+                continue
+            if random.random() < modify_rate:
+                modified = True
+                k = "".join(random.choices(string.ascii_letters, k=5))
+            d[k] = v
+            modify_keys(v, skip_rate, modify_rate)
+        else:
+            d.pop(k)
+            if random.random() < skip_rate:
+                skipped = True
+                continue
+            if random.random() < modify_rate:
+                modified = True
+                k = "".join(random.choices(string.ascii_letters, k=5))
+            d[k] = v
+    return d, modified, skipped
 
 
 class ProcessStatus:
