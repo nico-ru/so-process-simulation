@@ -174,6 +174,7 @@ logs/compound/*
 logs/simulation/*
 runtime/*
 result/*
+logs/anomalies.csv
 
 # hydra runs
 /multirun
