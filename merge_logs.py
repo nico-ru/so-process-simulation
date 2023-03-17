@@ -35,6 +35,8 @@ def main(services):
                     "TIMESTAMP",
                     "SERVICE",
                     "ENDPOINT",
+                    "ACTIVITY",
+                    "CODE",
                 ],  # type:ignore
             )
             frames.append(df)
