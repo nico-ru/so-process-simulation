@@ -16,7 +16,7 @@ from services.utils.config import Settings
 USER_DIR = os.path.join(os.path.expanduser("~"))
 BASE_DIR = os.environ.get("BASE_DIR", os.path.join(USER_DIR, "process_simulation"))
 LOG_DIR = os.environ.get("LOG_DIR", os.path.join(BASE_DIR, "logs"))
-STORAGE_DIR = os.environ.get("STORAGE_DIR", os.path.join(BASE_DIR, "runtime"))
+RUNTIME_DIR = os.environ.get("RUNTIME_DIR", os.path.join(BASE_DIR, "runtime"))
 
 
 def get_logger(name):
@@ -168,7 +168,10 @@ class ProcessStatus:
         self.name = name
         self.correlation_id = correlation_id
 
-        self.status_file = Path(os.path.join(STORAGE_DIR, f"{name}_{correlation_id}"))
+        self.status_file = Path(os.path.join(RUNTIME_DIR, f"{name}_{correlation_id}"))
+        self.waiting_file = Path(
+            os.path.join(RUNTIME_DIR, f"{name}_{correlation_id}.waiting")
+        )
 
     def read_process_status(self) -> Dict:
         if self.status_file.exists():
@@ -182,7 +185,13 @@ class ProcessStatus:
 
     def teardown(self):
         self.status_file.unlink(missing_ok=True)
+        self.waiting_file.unlink(missing_ok=True)
+
+    def set_waiting(self, wait: bool):
+        if wait:
+            self.waiting_file.touch(exist_ok=True)
+        else:
+            self.waiting_file.unlink(missing_ok=True)
 
     def waiting(self) -> bool:
-        status = self.read_process_status()
-        return status.get("waiting", False)
+        return self.waiting_file.exists()

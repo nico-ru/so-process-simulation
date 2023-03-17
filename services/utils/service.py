@@ -18,14 +18,14 @@ def run_process(
 
 def pause_process(name: str, correlation_id: str):
     status = ProcessStatus(name, correlation_id)
-    status.set_process_status(dict(waiting=True))
+    status.set_waiting(wait=True)
     while status.waiting():
         time.sleep(0.1)
 
 
 def resume_process(name: str, correlation_id: str):
     status = ProcessStatus(name, correlation_id)
-    status.set_process_status(dict(waiting=False))
+    status.set_waiting(wait=False)
 
 
 def insert_process_data(name: str, correlation_id: str, data: Dict):
