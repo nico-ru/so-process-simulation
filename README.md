@@ -41,6 +41,8 @@ python setup.py install
 pip install .
 
 # setup .env file according to env.example
+cp env.example .env
+vim .env # --> edit path variables
 ```
 
 ### run the simulation
