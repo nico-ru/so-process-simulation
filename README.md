@@ -73,6 +73,8 @@ In case only the communication bewteen a certain subset of services (i.e. servic
 ```bash
 # merge only order and inventory logs
 python merge_logs.py --services order inventory
+
+# results will be in logs/compound/
 ```
 
 ### Export with messages
@@ -81,4 +83,6 @@ python export_logs.py
 
 # export for only order and inventory services
 python merge_logs.py --services order inventory
+
+# results will be in result/
 ```
