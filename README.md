@@ -42,7 +42,10 @@ pip install .
 
 # setup .env file according to env.example
 cp env.example .env
-vim .env # --> edit path variables
+sed -i "s|<base_dir>|$(pwd)|" .env   # note: if there is a | character in your path chage the delimiter
+
+# or edit with your preferred editor
+vim .env # --> edit path variable
 ```
 
 ### run the simulation
