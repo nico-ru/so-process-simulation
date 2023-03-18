@@ -55,6 +55,10 @@ vim .env # --> edit path variable
 
 # start simulation
 python run_simulation.py --n_requests 100
+
+# wait until all processes have stopped
+# server logs can be observed with
+tail -f logs/server/*.log
 ```
 
 ## Logs
