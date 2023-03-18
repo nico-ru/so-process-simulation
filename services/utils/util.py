@@ -70,6 +70,7 @@ def log_event(
 
     if code != 0:
         anomaly_file = os.path.join(LOG_DIR, "anomalies.csv")
+        Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
         with open(anomaly_file, "a") as file:
             file.write(
                 f"{id},{timestamp},{service_name},{endpoint},{activity},{code}\n"
@@ -84,10 +85,12 @@ def log_event(
 
     m_file_name = f"{uuid.uuid4()}.log.{type}"
     m_file = os.path.join(LOG_DIR, "process", service_name, "messages", m_file_name)
+    Path(os.path.dirname(m_file)).mkdir(parents=True, exist_ok=True)
     with open(m_file, "w") as file:
         file.write(message)
 
     a_file = os.path.join(LOG_DIR, "process", service_name, "annotations.log.csv")
+    Path(os.path.dirname(a_file)).mkdir(parents=True, exist_ok=True)
     with open(a_file, "a") as file:
         line = f"{id},{m_file_name},{timestamp},{service_name},{endpoint},{activity},{code}\n"
         file.write(line)

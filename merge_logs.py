@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import dotenv
 import pandas
 import argparse
@@ -48,6 +49,7 @@ def main(services):
 
     dir = os.path.join(LOG_DIR, "compound", compound_name)
     location = os.path.join(dir, "annotations.csv")
+    Path(dir).mkdir(parents=True, exist_ok=True)
     log.to_csv(location, index=False)
 
 
